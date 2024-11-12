@@ -1,0 +1,19 @@
+{
+    "name": "kirano-dev/laravel-payment",
+    "description": "Integrate UZ Payment systems (Payme, Click, Uzum...)",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "KiranoDev\\LaravelPayment\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "kirano-dev",
+            "email": "developer@kirano.uz"
+        }
+    ],
+    "require-dev": {
+        "laravel/framework": "^11.30"
+    }
+}
