@@ -1,12 +1,30 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\PaymentController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\ClickController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\InfinityPayController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\PaymeController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\QuickPayController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\UzumController;
 
 Route::prefix('api/v1')->group(function () {
-    Route::prefix('payment')->controller(PaymentController::class)->group(function () {
-        Route::post('click', 'click');
-        Route::post('payme', 'payme');
-        Route::post('uzum', 'uzum');
+    Route::prefix('payment')->as('payment.')
+        ->group(function () {
+            Route::post('click', ClickController::class)->name('click');
+            Route::post('payme', PaymeController::class)->name('payme');
+            Route::post('uzum', UzumController::class)->name('uzum');
+            Route::post('quickpay', QuickPayController::class)->name('quickpay');
+
+            Route::prefix('infinitypay')
+                ->as('infinitypay.')
+                ->controller(InfinityPayController::class)
+                ->group(function () {
+                    Route::post('info', 'info')->name('info');
+                    Route::post('pay', 'pay')->name('pay');
+                    Route::post('notify', 'notify')->name('notify');
+                    Route::post('cancel', 'cancel')->name('cancel');
+                    Route::post('statement', 'statement')->name('statement');
+                    Route::post('fiscalization', 'fiscalization')->name('fiscalization');
+            });
     });
 });

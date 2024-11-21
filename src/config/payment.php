@@ -15,9 +15,23 @@ return [
     ],
 
     'uzum' => [
-        'is_test' => false,
+        'is_test' => true,
 
         'terminal_id' => '',
         'api_key' => '',
+    ],
+
+    'quickpay' => [
+        'shop_id' => '',
+        'secret_key' => '',
+        'success_url' => config('app.url'),
+    ],
+
+    'infinitypay' => [
+        'is_test' => true,
+
+        'vendor_id' => '',
+        'secret_key' => '',
+        'success_url' => config('app.url'),
     ],
 ];

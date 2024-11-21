@@ -1,8 +1,10 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Enums;
+namespace KiranoDev\LaravelPayment\Enums\Click;
 
-enum ClickError: string
+use KiranoDev\LaravelPayment\Enums\BaseEnum;
+
+enum Error: string
 {
     use BaseEnum;
 

@@ -4,7 +4,7 @@ namespace KiranoDev\LaravelPayment\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use KiranoDev\LaravelPayment\Contracts\OrderModel;
+use KiranoDev\LaravelPayment\Base\OrderModel;
 
 class PaymeFiscalisationResource extends JsonResource
 {

@@ -4,7 +4,7 @@ namespace KiranoDev\LaravelPayment\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use KiranoDev\LaravelPayment\Contracts\OrderModel;
+use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Enums\TransactionStatus;
 
 class Transaction extends Model

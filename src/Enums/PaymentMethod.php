@@ -9,4 +9,7 @@ enum PaymentMethod: string
     case CLICK = 'click';
     case PAYME = 'payme';
     case UZUM = 'uzum';
+    case QUICKPAY = 'quickpay';
+    case INFINITYPAY = 'infinitypay';
+    case CASH = 'cash';
 }

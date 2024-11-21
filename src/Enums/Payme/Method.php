@@ -1,8 +1,10 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Enums;
+namespace KiranoDev\LaravelPayment\Enums\Payme;
 
-enum PaymeMethod: string
+use KiranoDev\LaravelPayment\Enums\BaseEnum;
+
+enum Method: string
 {
     use BaseEnum;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Services;
+namespace KiranoDev\LaravelPayment\Services\Payment;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use KiranoDev\LaravelPayment\Contracts\OrderModel;
+use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
 use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Http\Resources\UzumItemResource;

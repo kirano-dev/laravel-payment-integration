@@ -2,6 +2,7 @@
 
 namespace KiranoDev\LaravelPayment\Contracts;
 
-interface ProductModel
+interface UserModel
 {
+
 }

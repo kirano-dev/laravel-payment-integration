@@ -15,5 +15,12 @@
     ],
     "require-dev": {
         "laravel/framework": "^11.30"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "KiranoDev\\LaravelPayment\\Providers\\LaravelPaymentServiceProvider"
+            ]
+        }
     }
 }

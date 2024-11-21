@@ -1,17 +1,17 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Services;
+namespace KiranoDev\LaravelPayment\Services\Payment;
 
-use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use KiranoDev\LaravelPayment\Contracts\OrderModel;
+use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
-use KiranoDev\LaravelPayment\Enums\PaymeError;
+use KiranoDev\LaravelPayment\Enums\Payme\Error;
 use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Enums\TransactionStatus;
 use KiranoDev\LaravelPayment\Http\Resources\PaymeFiscalisationResource;
 use KiranoDev\LaravelPayment\Http\Resources\PaymeTransactionResource;
+use KiranoDev\LaravelPayment\Models\Transaction;
 
 class Payme implements PaymentService
 {
@@ -30,6 +30,8 @@ class Payme implements PaymentService
     const MIN_AMOUNT = 100;
     const MAX_AMOUNT = 999999999;
 
+    const HOST = 'https://checkout.paycom.uz/';
+
     public function __construct()
     {
         $this->login = config('services.payment.payme.username');
@@ -47,24 +49,24 @@ class Payme implements PaymentService
             'l' => $order->user->language ?? 'ru',
         ];
 
-        return config('services.payment.payme.host') . base64_encode(
+        return self::HOST . base64_encode(
                 str_replace('&', ';', http_build_query($params))
             );
     }
 
-    public function getError(?PaymeError $error): ?array
+    public function getError(?Error $error): ?array
     {
         return $error ? [
             'code' => (int) $error->value,
             'message' => [
-                'ru' => __('errors.payme.'.$error->value, locale: 'ru'),
-                'en' => __('errors.payme.'.$error->value, locale: 'en'),
-                'uz' => __('errors.payme.'.$error->value, locale: 'uz'),
+                'ru' => __('payment::payme.'.$error->value, locale: 'ru'),
+                'en' => __('payment::payme.'.$error->value, locale: 'en'),
+                'uz' => __('payment::payme.'.$error->value, locale: 'uz'),
             ]
         ] : null;
     }
 
-    public function sendResponse(?array $result = null, PaymeError $error = null): JsonResponse
+    public function sendResponse(?array $result = null, Error $error = null): JsonResponse
     {
         return response()->json([
             'result' => $result,
@@ -87,7 +89,7 @@ class Payme implements PaymentService
     public function CheckTransaction(): JsonResponse
     {
         if(!$this->transaction) {
-            return $this->sendResponse(error: PaymeError::INVALID_TRANSACTION);
+            return $this->sendResponse(error: Error::INVALID_TRANSACTION);
         }
 
         return $this->sendResponse([
@@ -107,17 +109,12 @@ class Payme implements PaymentService
 
     public function CreateTransaction(array $data): JsonResponse
     {
-        $amount = $data['amount'];
-
         if(!$this->transaction) {
             if($this->order->transaction) {
-                return $this->sendResponse(error: PaymeError::ALREADY_HAS_TRANSACTION);
+                return $this->sendResponse(error: Error::ALREADY_HAS_TRANSACTION);
             }
 
-            $this->transaction = Transaction::create([
-                'type' => PaymentMethod::PAYME,
-                'order_id' => $this->order->id,
-                'amount' => $amount / 100,
+            $this->transaction = $this->order->transaction()->create([
                 'extra' => [
                     'create_time' => $this->getTimestamp(),
                     'perform_time' => 0,
@@ -227,7 +224,7 @@ class Payme implements PaymentService
         return false;
     }
 
-    public function validateParams(array $data): ?PaymeError
+    public function validateParams(array $data): ?Error
     {
 
 
@@ -239,15 +236,15 @@ class Payme implements PaymentService
             $this->order = app(OrderModel::class)::find($data['account']['order_id']);
 
             if(!$this->order) {
-                return PaymeError::INVALID_ORDER_ID;
+                return Error::INVALID_ORDER_ID;
             }
             if($this->order->amount !== $data['amount'] / 100) {
-                return PaymeError::INVALID_AMOUNT;
+                return Error::INVALID_AMOUNT;
             }
         }
 
         if(isset($data['amount']) && ($data['amount'] / 100 < self::MIN_AMOUNT || $data['amount'] / 100 > self::MAX_AMOUNT)) {
-            return PaymeError::INVALID_AMOUNT;
+            return Error::INVALID_AMOUNT;
         }
 
         return null;
@@ -266,7 +263,7 @@ class Payme implements PaymentService
 
         if (!$auth_valid) {
             return $this->sendResponse(
-                error: PaymeError::AUTH
+                error: Error::AUTH
             );
         }
 

@@ -1,15 +1,15 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Services;
+namespace KiranoDev\LaravelPayment\Services\Payment;
 
-use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use KiranoDev\LaravelPayment\Contracts\OrderModel;
+use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
-use KiranoDev\LaravelPayment\Enums\ClickError;
+use KiranoDev\LaravelPayment\Enums\Click\Error;
 use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Enums\TransactionStatus;
+use KiranoDev\LaravelPayment\Models\Transaction;
 
 class Click implements PaymentService
 {
@@ -77,28 +77,28 @@ class Click implements PaymentService
     private function validateParams($action, $data): ?JsonResponse
     {
         if($action === null) {
-            return $this->makeErrorResponse(ClickError::INVALID_ACTION);
+            return $this->makeErrorResponse(Error::INVALID_ACTION);
         }
 
         if(!$this->validateSignature($data)) {
-            return $this->makeErrorResponse(ClickError::INVALID_SIGN);
+            return $this->makeErrorResponse(Error::INVALID_SIGN);
         }
 
         if($this->with_split) {
             if($data['params']['amount'] < self::MIN_AMOUNT || $data['params']['amount'] > self::MAX_AMOUNT) {
-                return $this->makeErrorResponse(ClickError::INVALID_AMOUNT);
+                return $this->makeErrorResponse(Error::INVALID_AMOUNT);
             }
 
             if(!app(OrderModel::class)::find($data['params']['transaction_param'])) {
-                return $this->makeErrorResponse(ClickError::INVALID_USER);
+                return $this->makeErrorResponse(Error::INVALID_USER);
             }
         } else {
             if((int) $data['amount'] < self::MIN_AMOUNT || (int) $data['amount'] > self::MAX_AMOUNT) {
-                return $this->makeErrorResponse(ClickError::INVALID_AMOUNT);
+                return $this->makeErrorResponse(Error::INVALID_AMOUNT);
             }
 
             if(!app(OrderModel::class)::find($data['merchant_trans_id'])) {
-                return $this->makeErrorResponse(ClickError::INVALID_USER);
+                return $this->makeErrorResponse(Error::INVALID_USER);
             }
         }
 
@@ -110,20 +110,20 @@ class Click implements PaymentService
         if($action === 'prepare') {
             if($transaction) {
                 if($transaction->status === TransactionStatus::CANCELLED) {
-                    return $this->makeErrorResponse(ClickError::TRANSACTION_CANCELLED);
+                    return $this->makeErrorResponse(Error::TRANSACTION_CANCELLED);
                 }
 
-                return $this->makeErrorResponse(ClickError::ALREADY_PAID);
+                return $this->makeErrorResponse(Error::ALREADY_PAID);
             }
         } else if (!$transaction) {
-            return $this->makeErrorResponse(ClickError::INVALID_TRANSACTION);
+            return $this->makeErrorResponse(Error::INVALID_TRANSACTION);
         } else if ($transaction->amount !== (int) ($this->with_split ? $data['params']['amount'] : $data['amount'])) {
-            return $this->makeErrorResponse(ClickError::INVALID_AMOUNT);
+            return $this->makeErrorResponse(Error::INVALID_AMOUNT);
         }
 
         if($this->with_split) {
             if($data['error'] !== 0) {
-                return $this->makeErrorResponse(ClickError::INVALID_REQUEST);
+                return $this->makeErrorResponse(Error::INVALID_REQUEST);
             }
         }
 
@@ -134,8 +134,6 @@ class Click implements PaymentService
     {
         $transaction = Transaction::create($this->with_split ? [
             'order_id' => $data['params']['transaction_param'],
-            'amount' => $data['params']['amount'],
-            'type' => PaymentMethod::CLICK,
             'extra' => [
                 'click_paydoc_id' => $data['click_paydoc_id'],
                 'attempt_trans_id' => $data['attempt_trans_id'],
@@ -144,8 +142,6 @@ class Click implements PaymentService
             ],
         ] : [
             'order_id' => $data['merchant_trans_id'],
-            'amount' => $data['amount'],
-            'type' => PaymentMethod::CLICK,
             'extra' => [
                 'click_trans_id' => $data['click_trans_id'],
                 'click_paydoc_id' => $data['click_paydoc_id'],
@@ -196,33 +192,33 @@ class Click implements PaymentService
 
         $response["merchant_{$type}_id"] = $transaction->id;
 
-        return response()->json($response + $this->makeError(ClickError::SUCCESS));
+        return response()->json($response + $this->makeError(Error::SUCCESS));
     }
 
     public function makeErrorResponse(
-        ClickError $error
+        Error $error
     ): JsonResponse
     {
         return response()->json($this->makeError($error));
     }
 
     static public function makeError(
-        ClickError $error
+        Error $error
     ): array
     {
         return [
             'error' => $error->value,
             'error_note' => match($error) {
-                ClickError::SUCCESS => 'Success',
-                ClickError::INVALID_SIGN => 'SIGN CHECK FAILED!',
-                ClickError::INVALID_AMOUNT => 'Incorrect parameter amount',
-                ClickError::INVALID_ACTION => 'Action not found',
-                ClickError::ALREADY_PAID => 'Already paid',
-                ClickError::INVALID_USER => 'User does not exist',
-                ClickError::INVALID_TRANSACTION => 'Transaction does not exist',
-                ClickError::FAILED_UPDATE_USER => 'Failed to update user',
-                ClickError::INVALID_REQUEST => 'Error in request from click',
-                ClickError::TRANSACTION_CANCELLED => 'Transaction cancelled',
+                Error::SUCCESS => 'Success',
+                Error::INVALID_SIGN => 'SIGN CHECK FAILED!',
+                Error::INVALID_AMOUNT => 'Incorrect parameter amount',
+                Error::INVALID_ACTION => 'Action not found',
+                Error::ALREADY_PAID => 'Already paid',
+                Error::INVALID_USER => 'User does not exist',
+                Error::INVALID_TRANSACTION => 'Transaction does not exist',
+                Error::FAILED_UPDATE_USER => 'Failed to update user',
+                Error::INVALID_REQUEST => 'Error in request from click',
+                Error::TRANSACTION_CANCELLED => 'Transaction cancelled',
             },
         ];
     }

@@ -4,6 +4,7 @@ namespace KiranoDev\LaravelPayment\Contracts;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use KiranoDev\LaravelPayment\Base\OrderModel;
 
 interface PaymentService
 {

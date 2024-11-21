@@ -1,10 +1,10 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Http\Requests;
+namespace KiranoDev\LaravelPayment\Http\Requests\Uzum;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UzumCallbackRequest extends FormRequest
+class CallbackRequest extends FormRequest
 {
     public function rules(): array
     {
