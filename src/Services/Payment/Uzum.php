@@ -16,6 +16,7 @@ class Uzum implements PaymentService
     private string $terminal_id;
     private string $api_key;
     private string $host;
+    private bool $is_test;
 
     const HOST = 'https://checkout-key.inplat-tech.com/';
     const TEST_HOST = 'https://test-chk-api.uzumcheckout.uz/';
@@ -29,12 +30,13 @@ class Uzum implements PaymentService
 
     public function __construct()
     {
-        $this->terminal_id = config('services.payment.uzum.terminal_id');
-        $this->api_key = config('services.payment.uzum.api_key');
-        $this->host = config('laravel-payment::uzum.' . (config('laravel-payment::uzum.is_test', true)
-            ? self::TEST_HOST
-            : self::HOST
-        )) . 'api/v1/payment/';
+        $this->is_test = config('laravel-payment::uzum.is_test', true);
+
+        $test_prefix = $this->is_test ? 'test.' : '';
+
+        $this->terminal_id = config("services.payment.uzum.{$test_prefix}terminal_id");
+        $this->api_key = config("services.payment.uzum.{$test_prefix}api_key");
+        $this->host = $this->is_test ? self::TEST_HOST : self::HOST;
     }
 
     public function generateUrl(OrderModel $order): string

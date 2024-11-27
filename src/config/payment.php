@@ -19,6 +19,11 @@ return [
 
         'terminal_id' => '',
         'api_key' => '',
+
+        'test' => [
+            'terminal_id' => '',
+            'api_key' => '',
+        ]
     ],
 
     'quickpay' => [
