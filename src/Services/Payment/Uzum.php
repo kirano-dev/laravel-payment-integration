@@ -18,32 +18,32 @@ class Uzum implements PaymentService
     private string $host;
     private bool $is_test;
 
-    const HOST = 'https://checkout-key.inplat-tech.com/';
-    const TEST_HOST = 'https://test-chk-api.uzumcheckout.uz/';
+    const HOST = 'https://checkout-key.inplat-tech.com/api/v1/';
+    const TEST_HOST = 'https://test-chk-api.uzumcheckout.uz/api/v1/';
 
     const SUCCESS_OPERATION_STATE = 'SUCCESS';
     const COMPLETE_OPERATION_TYPE = 'COMPLETE';
     const ORDER_STATUS_COMPLETED = 'COMPLETED';
 
-    const ROUTE_REGISTER_PAYMENT = 'register';
+    const ROUTE_REGISTER_PAYMENT = 'payment/register';
     const ROUTE_GET_ORDER_STATUS = 'getOrderStatus';
 
     public function __construct()
     {
-        $this->is_test = config('laravel-payment::uzum.is_test', true);
+        $this->is_test = config('payment.uzum.is_test', true);
 
         $test_prefix = $this->is_test ? 'test.' : '';
 
-        $this->terminal_id = config("services.payment.uzum.{$test_prefix}terminal_id");
-        $this->api_key = config("services.payment.uzum.{$test_prefix}api_key");
+        $this->terminal_id = config("payment.uzum.{$test_prefix}terminal_id");
+        $this->api_key = config("payment.uzum.{$test_prefix}api_key");
         $this->host = $this->is_test ? self::TEST_HOST : self::HOST;
     }
 
     public function generateUrl(OrderModel $order): string
     {
         $data = [
-            'successUrl' => route('profile'),
-            'failureUrl' => route('profile'),
+            'successUrl' => $order->getSuccessUrl(),
+            'failureUrl' => $order->getFailureUrl(),
             'viewType' => 'REDIRECT',
             'clientId' => (string) auth()->id(),
             'currency' => 860,
@@ -54,9 +54,7 @@ class Uzum implements PaymentService
                 'cart' => [
                     'cartId' => request()->ip(),
                     'receiptType' => 'PURCHASE',
-                    'items' => UzumItemResource::collection(
-                        $order->getProducts()
-                    ),
+                    'items' => UzumItemResource::collection($order->products),
                     'total' => $order->amount * 100,
                 ],
             ],
@@ -71,17 +69,15 @@ class Uzum implements PaymentService
 
         if (isset($response['result']['orderId'])) {
             $order->transaction()->create([
-                'type' => PaymentMethod::UZUM,
-                'amount' => $order->amount,
                 'extra' => [
                     'orderId' => $response['result']['orderId'],
                 ]
             ]);
-
-            return $response['result']['paymentRedirectUrl'];
+        } else {
+            info('UZUM Error: '. json_encode($response));
         }
 
-        return route('profile');
+        return $response['result']['paymentRedirectUrl'] ?? '';
     }
 
     private function sendRequest(string $route, array $data): ?array

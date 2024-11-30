@@ -21,6 +21,7 @@ class Payme implements PaymentService
     private string $login;
     private string $key;
     private string $merchant_id;
+    private bool $is_test;
 
     const TRANSACTION_STATE_CREATED = 1;
     const TRANSACTION_STATE_FINISHED = 2;
@@ -34,10 +35,10 @@ class Payme implements PaymentService
 
     public function __construct()
     {
-        $this->login = config('services.payment.payme.username');
-//        $this->key = config('services.payment.payme.test_key');
-        $this->key = config('services.payment.payme.key');
-        $this->merchant_id = config('services.payment.payme.merchant_id');
+        $this->is_test = config('payment.payme.is_test');
+        $this->login = 'Paycom';
+        $this->key = config('payment.payme.' . ($this->is_test ? 'test_key' : 'key'));
+        $this->merchant_id = config('payment.payme.merchant_id');
     }
 
     public function generateUrl(OrderModel $order): string
@@ -46,7 +47,7 @@ class Payme implements PaymentService
             'm' => $this->merchant_id,
             'ac.order_id' => $order->id,
             'a' => $order->amount * 100,
-            'l' => $order->user->language ?? 'ru',
+            'l' => $order->user->language ?? app()->getLocale(),
         ];
 
         return self::HOST . base64_encode(
@@ -59,9 +60,9 @@ class Payme implements PaymentService
         return $error ? [
             'code' => (int) $error->value,
             'message' => [
-                'ru' => __('payment::payme.'.$error->value, locale: 'ru'),
-                'en' => __('payment::payme.'.$error->value, locale: 'en'),
-                'uz' => __('payment::payme.'.$error->value, locale: 'uz'),
+                'ru' => __('payment::payment.payme.'.$error->value, locale: 'ru'),
+                'en' => __('payment::payment.payme.'.$error->value, locale: 'en'),
+                'uz' => __('payment::payment.payme.'.$error->value, locale: 'uz'),
             ]
         ] : null;
     }
@@ -81,7 +82,7 @@ class Payme implements PaymentService
             'allow' => true,
             'detail' => [
                 'receipt_type' => 0,
-                'items' => PaymeFiscalisationResource::collection($this->order->products)
+                'items' => PaymeFiscalisationResource::collection($this->order->products),
             ]
         ]);
     }
@@ -182,7 +183,7 @@ class Payme implements PaymentService
 
     public function GetStatement(array $data): JsonResponse
     {
-        $transactions = Transaction::where('type', PaymentMethod::PAYME)
+        $transactions = Transaction::whereHas('order', fn($query) => $query->where('payment_method', PaymentMethod::PAYME))
             ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(extra, '$.create_time')) <= {$data['to']} AND JSON_UNQUOTE(JSON_EXTRACT(extra, '$.create_time')) >= {$data['from']}")
             ->orderBy('created_at', 'desc')
             ->get();
@@ -226,8 +227,6 @@ class Payme implements PaymentService
 
     public function validateParams(array $data): ?Error
     {
-
-
         if(isset($data['id'])) {
             $this->transaction = self::getTransaction($data['id']);
         }

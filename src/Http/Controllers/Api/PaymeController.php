@@ -1,6 +1,6 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api;
+namespace KiranoDev\LaravelPayment\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use KiranoDev\LaravelPayment\Http\Requests\Payme\CallbackRequest;
@@ -10,6 +10,7 @@ class PaymeController
 {
     public function __invoke(CallbackRequest $request, Payme $payme): JsonResponse
     {
+        info(json_encode($request->all()));
         return $payme->callback($request);
     }
 }

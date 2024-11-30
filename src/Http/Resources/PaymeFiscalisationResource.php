@@ -8,22 +8,18 @@ use KiranoDev\LaravelPayment\Base\OrderModel;
 
 class PaymeFiscalisationResource extends JsonResource
 {
-    public function __construct(
-        $resource,
-        public OrderModel $order
-    ) {
-        parent::__construct($resource);
-    }
-
     public function toArray(Request $request): array
     {
+        $product = $this->productable;
+        $info = $product->getFiscalizationInfo();
+
         return [
-            'title' => $this->title[$this->order->user->language],
-            'price' => $this->order->amount * 100,
-            'count' => 1,
-            'code' => config('services.payment.ikpu'),
+            'title' => $info['title'],
+            'price' => $info['price'] * 100,
+            'count' => $this->pivot->quantity,
+            'code' => $info['ikpu'],
             'vat_percent' => 12,
-            'package_code' => config('services.payment.package_code'),
+            'package_code' => $info['package_code'],
         ];
     }
 }

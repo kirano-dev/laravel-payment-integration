@@ -9,17 +9,25 @@ class UzumItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $product = $this->productable;
+        $info = $product->getFiscalizationInfo();
+        $title = $info['title'];
+
+        if (strlen($title) > 63) {
+            $title = substr($title, 0, 60) . '...';
+        }
+
         return [
-            'title' => $this->name,
-            'productId' => (string) $this->id,
-            'quantity' => $this->pivot->count,
-            'unitPrice' => $this->price * 100,
-            'total' => $this->price * 100 * $this->pivot->count,
+            'title' => $title,
+            'productId' => (string) $info['id'],
+            'quantity' => $this->pivot->quantity,
+            'unitPrice' => $info['price'] * 100,
+            'total' => $info['price'] * 100 * $this->pivot->quantity,
             'receiptParams' => [
-                'spic' => $this->ikpu,
-                'packageCode' => $this->package_code,
+                'spic' => $info['ikpu'],
+                'packageCode' => $info['package_code'],
                 'vatPercent' => 12,
-                'TIN' => config('services.payment.uzum.inn'),
+                'TIN' => config('payment.uzum.inn'),
             ]
         ];
     }

@@ -43,8 +43,8 @@ class QuickPay implements PaymentService
             'order_id' => $order->id,
             'shop_id' => $this->shop_id,
             'hook_url' => route('payment.quickpay'),
-            'fail_url' => config('app.url'),
-            'success_url' => config('payment.quickpay.success_url'),
+            'fail_url' => $order->getFailureUrl(),
+            'success_url' => $order->getSuccessUrl(),
         ]);
 
         if($response->ok()) {

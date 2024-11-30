@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\ClickController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\InfinityPayController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\PaymeController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\QuickPayController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api\UzumController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\ClickController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\InfinityPayController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\PaymeController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\QuickPayController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\UzumController;
 
 Route::prefix('api/v1')->group(function () {
     Route::prefix('payment')->as('payment.')

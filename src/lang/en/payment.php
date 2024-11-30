@@ -5,12 +5,12 @@ use KiranoDev\LaravelPayment\Enums\InfinityPay\Error as InfinityPayError;
 
 return [
     'payme' => [
-        PaymeError::INVALID_AMOUNT->value => 'Неверная сумма',
-        PaymeError::INVALID_ORDER_ID->value => 'Неверный order_id',
-        PaymeError::INVALID_TRANSACTION->value => 'Несуществующая транзакция',
-        PaymeError::CANT_PERFORM->value => 'Невозможно выполнить операцию',
-        PaymeError::AUTH->value => 'Не авторизован',
-        PaymeError::ALREADY_HAS_TRANSACTION->value => 'Транзакция уже существует',
+        PaymeError::INVALID_AMOUNT->value => 'Invalid amount',
+        PaymeError::INVALID_ORDER_ID->value => 'Invalid order_id',
+        PaymeError::INVALID_TRANSACTION->value => 'Non-existent transaction',
+        PaymeError::CANT_PERFORM->value => 'Unable to perform operation',
+        PaymeError::AUTH->value => 'Not authorized',
+        PaymeError::ALREADY_HAS_TRANSACTION->value => 'The transaction already exists',
     ],
 
     'infinitypay' => [

@@ -6,12 +6,14 @@ return [
         'merchant_id' => '',
         'merchant_user_id' => '',
         'secret_key' => '',
+        'with_split' => false,
     ],
 
     'payme' => [
         'merchant_id' => '',
         'key' => '',
         'test_key' => '',
+        'is_test' => false,
     ],
 
     'uzum' => [
@@ -19,6 +21,7 @@ return [
 
         'terminal_id' => '',
         'api_key' => '',
+        'inn' => '',
 
         'test' => [
             'terminal_id' => '',
@@ -29,7 +32,6 @@ return [
     'quickpay' => [
         'shop_id' => '',
         'secret_key' => '',
-        'success_url' => config('app.url'),
     ],
 
     'infinitypay' => [
@@ -37,6 +39,5 @@ return [
 
         'vendor_id' => '',
         'secret_key' => '',
-        'success_url' => config('app.url'),
     ],
 ];

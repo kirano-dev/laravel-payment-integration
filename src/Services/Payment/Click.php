@@ -16,16 +16,22 @@ class Click implements PaymentService
     public Request $request;
     private bool $with_split;
     private string $secret_key;
+    private string $service_id;
+    private string $merchant_id;
     private int $prepare_action;
     private int $complete_action;
 
     const MIN_AMOUNT = 100;
     const MAX_AMOUNT = 100000000;
 
+    const HOST = 'https://my.click.uz/services/pay';
+
     public function __construct()
     {
-        $this->with_split = config('services.payment.click.with_split', false);
-        $this->secret_key = config('services.payment.click.secret_key');
+        $this->with_split = config('payment.click.with_split', false);
+        $this->secret_key = config('payment.click.secret_key');
+        $this->service_id = config('payment.click.service_id');
+        $this->merchant_id = config('payment.click.merchant_id');
         $this->prepare_action = $this->with_split ? 1 : 0;
         $this->complete_action = $this->with_split ? 2 : 1;
     }
@@ -33,14 +39,14 @@ class Click implements PaymentService
     public function generateUrl($order): string
     {
         $params = [
-            'service_id' => config('services.payment.click.service_id'),
-            'merchant_id' => config('services.payment.click.merchant_id'),
+            'service_id' => $this->service_id,
+            'merchant_id' => $this->merchant_id,
             'merchant_user_id' => $order->user_id,
             'amount' => $order->amount,
             'transaction_param' => $order->id,
         ];
 
-        return config('services.payment.click.host') . '?' . http_build_query($params);
+        return self::HOST . '?' . http_build_query($params);
     }
 
     private function validateSignature($params): bool
@@ -49,8 +55,8 @@ class Click implements PaymentService
             $params['click_paydoc_id'],
             $params['attempt_trans_id'],
             $params['service_id'],
-            config('services.payment.click.secret_key'),
-            implode(array: array_values($params['params'])),
+            $this->secret_key,
+            implode('', array_values($params['params'])),
         ] : [
             $params['click_trans_id'],
             $params['service_id'],

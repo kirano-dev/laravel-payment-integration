@@ -1,6 +1,6 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api;
+namespace KiranoDev\LaravelPayment\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use KiranoDev\LaravelPayment\Http\Requests\Click\CallbackRequest;
@@ -10,6 +10,7 @@ class ClickController
 {
     public function __invoke(CallbackRequest $request, Click $click): JsonResponse
     {
+        info(json_encode($request->all()));
         return $click->callback($request);
     }
 }

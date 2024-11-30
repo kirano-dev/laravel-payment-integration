@@ -1,6 +1,6 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api;
+namespace KiranoDev\LaravelPayment\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use KiranoDev\LaravelPayment\Http\Requests\QuickPay\CallbackRequest;
@@ -10,6 +10,7 @@ class QuickPayController
 {
     public function __invoke(CallbackRequest $request, QuickPay $quickPay): JsonResponse
     {
+        info(json_encode($request->all()));
         return $quickPay->callback($request);
     }
 }

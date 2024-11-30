@@ -17,16 +17,14 @@ class InfinityPay implements PaymentService
 
     private string $vendor_id;
     private string $secret_key;
-    private string $success_url;
     private string $host;
     private int $time;
     private ?OrderModel $order;
 
     public function __construct()
     {
-        $this->vendor_id = config('payment.quickpay.vendor_id');
+        $this->vendor_id = config('payment.infinitypay.vendor_id');
         $this->secret_key = config('payment.infinitypay.secret_key');
-        $this->success_url = config('payment.infinitypay.success_url');
         $this->host = config('payment.infinitypay.is_test')
             ? self::TEST_HOST
             : self::HOST;
@@ -43,7 +41,7 @@ class InfinityPay implements PaymentService
             'MERCHANT_TRANS_AMOUNT' => $order->amount,
             'MERCHANT_CURRENCY' => 'sum',
             'MERCHANT_TRANS_NOTE' => 'test comment',
-            'MERCHANT_TRANS_RETURN_URL' => $this->success_url,
+            'MERCHANT_TRANS_RETURN_URL' => $order->getSuccessUrl(),
             'SIGN_TIME' => $this->time,
             'SIGN_STRING' => $this->generateSignature(),
         ];
@@ -53,7 +51,7 @@ class InfinityPay implements PaymentService
 
     private function generateSignature(): string
     {
-        return md5(implode(array: [
+        return md5(implode('', [
             $this->secret_key,
             $this->vendor_id,
             $this->order->id,
@@ -70,7 +68,7 @@ class InfinityPay implements PaymentService
     {
         return response()->json([
             'ERROR' => $error->value,
-            'ERROR_NOTE' => __('payment::infinitypay.'.$error->value),
+            'ERROR_NOTE' => __('payment::payment.infinitypay.'.$error->value),
             ...$extra,
         ]);
     }

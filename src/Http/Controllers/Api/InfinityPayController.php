@@ -1,6 +1,6 @@
 <?php
 
-namespace KiranoDev\LaravelPayment\Http\Controllers\Api\Controllers\Api;
+namespace KiranoDev\LaravelPayment\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use KiranoDev\LaravelPayment\Http\Requests\InfinityPay\CancelRequest;
@@ -22,31 +22,37 @@ class InfinityPayController
 
     public function info(InfoRequest $request): JsonResponse
     {
+        info(json_encode($request->all()));
         return $this->service->info($request);
     }
 
     public function pay(PayRequest $request): JsonResponse
     {
+        info(json_encode($request->all()));
         return $this->service->pay($request);
     }
 
     public function notify(NotifyRequest $request): JsonResponse
     {
+        info(json_encode($request->all()));
         return $this->service->notify($request);
     }
 
     public function cancel(CancelRequest $request): JsonResponse
     {
+        info(json_encode($request->all()));
         return $this->service->cancel($request);
     }
 
     public function statement(StatementRequest $request): JsonResponse
     {
+        info(json_encode($request->all()));
         return $this->service->statement($request);
     }
 
     public function fiscalization(FiscalizationRequest $request): JsonResponse
     {
+        info(json_encode($request->all()));
         return $this->service->fiscalization($request);
     }
 }
