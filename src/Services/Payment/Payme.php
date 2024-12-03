@@ -9,6 +9,7 @@ use KiranoDev\LaravelPayment\Contracts\PaymentService;
 use KiranoDev\LaravelPayment\Enums\Payme\Error;
 use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Enums\TransactionStatus;
+use KiranoDev\LaravelPayment\Helpers\Timestamp;
 use KiranoDev\LaravelPayment\Http\Resources\PaymeFiscalisationResource;
 use KiranoDev\LaravelPayment\Http\Resources\PaymeTransactionResource;
 use KiranoDev\LaravelPayment\Models\Transaction;
@@ -103,11 +104,6 @@ class Payme implements PaymentService
         ]);
     }
 
-    private function getTimestamp(): int
-    {
-        return round(microtime(true) * 1000);
-    }
-
     public function CreateTransaction(array $data): JsonResponse
     {
         if(!$this->transaction) {
@@ -117,7 +113,7 @@ class Payme implements PaymentService
 
             $this->transaction = $this->order->transaction()->create([
                 'extra' => [
-                    'create_time' => $this->getTimestamp(),
+                    'create_time' => (new Timestamp())(),
                     'perform_time' => 0,
                     'cancel_time' => 0,
                     'receivers' => null,
@@ -141,7 +137,7 @@ class Payme implements PaymentService
         if($this->transaction->status !== TransactionStatus::ACTIVE) {
             $this->transaction->update([
                 'status' => TransactionStatus::ACTIVE,
-                'extra->perform_time' => $this->getTimestamp(),
+                'extra->perform_time' => (new Timestamp())(),
                 'extra->state' => self::TRANSACTION_STATE_FINISHED,
             ]);
             $this->transaction->order->update([
@@ -161,7 +157,7 @@ class Payme implements PaymentService
         if($this->transaction->status !== TransactionStatus::CANCELLED) {
             $this->transaction->update([
                 'status' => TransactionStatus::CANCELLED,
-                'extra->cancel_time' => $this->getTimestamp(),
+                'extra->cancel_time' => (new Timestamp())(),
                 'extra->reason' => $data['reason'],
                 'extra->state' => ($this->transaction->extra['state'] ?? -1) === self::TRANSACTION_STATE_FINISHED
                     ? self::TRANSACTION_STATE_CANCELLED_AFTER_PERFORM
@@ -183,8 +179,8 @@ class Payme implements PaymentService
 
     public function GetStatement(array $data): JsonResponse
     {
-        $transactions = Transaction::whereHas('order', fn($query) => $query->where('payment_method', PaymentMethod::PAYME))
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(extra, '$.create_time')) <= {$data['to']} AND JSON_UNQUOTE(JSON_EXTRACT(extra, '$.create_time')) >= {$data['from']}")
+        $transactions = Transaction::method(PaymentMethod::PAYME)
+            ->between($data['from'], $data['to'], PaymentMethod::PAYME)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -193,7 +189,7 @@ class Payme implements PaymentService
         ]);
     }
 
-    public function getTransactionState(mixed $transaction): int
+    public function getTransactionState(Transaction $transaction): int
     {
         return match ($transaction->status) {
             TransactionStatus::INACTIVE => self::TRANSACTION_STATE_CREATED,

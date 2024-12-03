@@ -8,7 +8,12 @@ use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
 use KiranoDev\LaravelPayment\Enums\InfinityPay\Error;
 use KiranoDev\LaravelPayment\Enums\InfinityPay\PaymentStatus;
+use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Enums\TransactionStatus;
+use KiranoDev\LaravelPayment\Helpers\Timestamp;
+use KiranoDev\LaravelPayment\Http\Resources\InfinityPayFiscalizationResource;
+use KiranoDev\LaravelPayment\Http\Resources\InfinityPayTransactionResource;
+use KiranoDev\LaravelPayment\Models\Transaction;
 
 class InfinityPay implements PaymentService
 {
@@ -19,13 +24,20 @@ class InfinityPay implements PaymentService
     private string $secret_key;
     private string $host;
     private int $time;
+    public bool $is_test;
     private ?OrderModel $order;
+    private ?Transaction $transaction;
+
+    const TRANSACTION_STATE_CREATED = 0;
+    const TRANSACTION_STATE_PAYED = 2;
+    const TRANSACTION_STATE_CANCELLED = 3;
 
     public function __construct()
     {
         $this->vendor_id = config('payment.infinitypay.vendor_id');
         $this->secret_key = config('payment.infinitypay.secret_key');
-        $this->host = config('payment.infinitypay.is_test')
+        $this->is_test = config('payment.infinitypay.is_test');
+        $this->host = $this->is_test
             ? self::TEST_HOST
             : self::HOST;
     }
@@ -77,7 +89,7 @@ class InfinityPay implements PaymentService
     {
         if(!$this->order) {
             return $this->sendResponse(
-                Error::TRANSACTION_DOES_NOT_EXIST
+                Error::USER_DOES_NOT_EXIST
             );
         }
 
@@ -109,17 +121,17 @@ class InfinityPay implements PaymentService
     private function getOrder(Request $request, string $key = 'MERCHANT_TRANS_ID'): void
     {
         $this->order = app(OrderModel::class)->find($request->$key);
+        $this->transaction = $this->order->transaction;
     }
 
     public function info(Request $request): JsonResponse
     {
+        info('INFO');
         $this->getOrder($request);
 
         $checkOrder = $this->checkOrder();
 
         if($checkOrder) return $checkOrder;
-
-        $this->order->transaction()->create();
 
         return $this->sendResponse(extra: [
             'PARAMETERS' => []
@@ -139,7 +151,7 @@ class InfinityPay implements PaymentService
 
     public function checkOrderCancelled(): ?JsonResponse
     {
-        if($this->order->transaction->status === TransactionStatus::CANCELLED) {
+        if($this->transaction->status === TransactionStatus::CANCELLED) {
             return $this->sendResponse(
                 Error::TRANSACTION_CANCELLED
             );
@@ -150,7 +162,7 @@ class InfinityPay implements PaymentService
 
     public function checkVendor(Request $request): ?JsonResponse
     {
-        if($this->vendor_id !== $request->VENDOR_ID) {
+        if($this->vendor_id !== (string) $request->VENDOR_ID) {
             return $this->sendResponse(
                 Error::VENDOR_NOT_FOUND
             );
@@ -159,11 +171,33 @@ class InfinityPay implements PaymentService
         return null;
     }
 
+    public function createTransaction($request): ?JsonResponse
+    {
+        if($this->order->transaction) {
+            return $this->sendResponse(
+                Error::ALREADY_PAID
+            );
+        }
+
+        $this->transaction = $this->order->transaction()->create([
+            'extra' => [
+                'ENVIRONMENT' => $this->is_test ? 'sandbox' : 'live',
+                'AGR_TRANS_ID' => $request->AGR_TRANS_ID,
+                'DATE' => (new Timestamp())(),
+                'STATE' => self::TRANSACTION_STATE_CREATED,
+            ]
+        ]);
+
+        return null;
+    }
+
     public function pay(Request $request): JsonResponse
     {
+        info('PAY');
         $this->getOrder($request);
 
         return $this->checkOrder() ??
+            $this->createTransaction($request) ??
             $this->checkAmount($request) ??
             $this->checkOrderCancelled() ??
             $this->checkAlreadyPayed() ??
@@ -176,11 +210,16 @@ class InfinityPay implements PaymentService
 
     public function notify(Request $request): JsonResponse
     {
+        info('NOTIFY');
         $this->getOrder($request, 'VENDOR_TRANS_ID');
 
         $checkOrder = $this->checkOrder();
 
         if($checkOrder) return $checkOrder;
+
+        $this->order->transaction->update([
+            'extra->STATE' => $request->STATUS,
+        ]);
 
         switch($request->STATUS) {
             case PaymentStatus::PAYED->value:
@@ -206,11 +245,43 @@ class InfinityPay implements PaymentService
 
     public function cancel(Request $request): JsonResponse
     {
+        info('Cancel');
         $this->getOrder($request, 'VENDOR_TRANS_ID');
 
-        return $this->checkOrder() ??
-            $this->checkOrderCancelled() ??
-            $this->sendResponse();
+        $checks = $this->checkOrder() ??
+            $this->checkOrderCancelled();
+
+        if(!$checks) {
+            $this->order->transaction->update([
+                'extra->STATE' => self::TRANSACTION_STATE_CANCELLED,
+            ]);
+        }
+
+        return $checks ?? $this->sendResponse();
+    }
+
+    public function statement(Request $request): JsonResponse
+    {
+        $transactions = Transaction::method(PaymentMethod::INFINITYPAY)
+            ->between($request->FROM, $request->TO, PaymentMethod::INFINITYPAY)
+            ->get();
+
+        return $this->sendResponse(extra: [
+            'TRANSACTIONS' => InfinityPayTransactionResource::collection($transactions)
+        ]);
+    }
+
+    public function fiscalization(Request $request): JsonResponse
+    {
+        $this->getOrder($request, 'AGR_TRANS_ID');
+
+        $checkOrder = $this->checkOrder();
+
+        if($checkOrder) return $checkOrder;
+
+        return $this->sendResponse(extra: [
+            'PARAMETERS' => new InfinityPayFiscalizationResource($this->order)
+        ]);
     }
 
     public function callback(Request $request): JsonResponse

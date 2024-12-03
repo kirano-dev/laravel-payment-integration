@@ -214,24 +214,13 @@ class Click implements PaymentService
     {
         return [
             'error' => $error->value,
-            'error_note' => match($error) {
-                Error::SUCCESS => 'Success',
-                Error::INVALID_SIGN => 'SIGN CHECK FAILED!',
-                Error::INVALID_AMOUNT => 'Incorrect parameter amount',
-                Error::INVALID_ACTION => 'Action not found',
-                Error::ALREADY_PAID => 'Already paid',
-                Error::INVALID_USER => 'User does not exist',
-                Error::INVALID_TRANSACTION => 'Transaction does not exist',
-                Error::FAILED_UPDATE_USER => 'Failed to update user',
-                Error::INVALID_REQUEST => 'Error in request from click',
-                Error::TRANSACTION_CANCELLED => 'Transaction cancelled',
-            },
+            'error_note' => __('payment::payment.click.' . $error->value),
         ];
     }
 
-    public function getAction(string $action): ?string
+    public function getAction($action): ?string
     {
-        return match((int) $action) {
+        return match($action) {
             $this->prepare_action => 'prepare',
             $this->complete_action => 'complete',
             default => null,
