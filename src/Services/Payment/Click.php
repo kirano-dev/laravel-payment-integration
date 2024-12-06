@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
 use KiranoDev\LaravelPayment\Enums\Click\Error;
-use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Enums\TransactionStatus;
 use KiranoDev\LaravelPayment\Models\Transaction;
 
@@ -123,7 +122,7 @@ class Click implements PaymentService
             }
         } else if (!$transaction) {
             return $this->makeErrorResponse(Error::INVALID_TRANSACTION);
-        } else if ($transaction->amount !== (int) ($this->with_split ? $data['params']['amount'] : $data['amount'])) {
+        } else if ($transaction->order->amount !== (int) ($this->with_split ? $data['params']['amount'] : $data['amount'])) {
             return $this->makeErrorResponse(Error::INVALID_AMOUNT);
         }
 
@@ -220,7 +219,7 @@ class Click implements PaymentService
 
     public function getAction($action): ?string
     {
-        return match($action) {
+        return match((int) $action) {
             $this->prepare_action => 'prepare',
             $this->complete_action => 'complete',
             default => null,

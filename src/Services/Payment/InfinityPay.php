@@ -45,7 +45,7 @@ class InfinityPay implements PaymentService
     public function generateUrl(OrderModel $order): string
     {
         $this->order = $order;
-        $this->time = round(microtime(true) * 1000);
+        $this->time = (new Timestamp())();
 
         $params = [
             'VENDOR_ID' => $this->vendor_id,
@@ -80,14 +80,14 @@ class InfinityPay implements PaymentService
     {
         return response()->json([
             'ERROR' => $error->value,
-            'ERROR_NOTE' => __('payment::payment.infinitypay.'.$error->value),
+            'ERROR_NOTE' => __('payment::payment.infinitypay.' . $error->value),
             ...$extra,
         ]);
     }
 
     private function checkOrder(): ?JsonResponse
     {
-        if(!$this->order) {
+        if (!$this->order) {
             return $this->sendResponse(
                 Error::USER_DOES_NOT_EXIST
             );
@@ -98,7 +98,7 @@ class InfinityPay implements PaymentService
 
     private function checkUser(): ?JsonResponse
     {
-        if(!$this->order->user) {
+        if (!$this->order->user) {
             return $this->sendResponse(
                 Error::USER_DOES_NOT_EXIST
             );
@@ -109,7 +109,7 @@ class InfinityPay implements PaymentService
 
     private function checkAmount(Request $request): ?JsonResponse
     {
-        if($this->order->amount !== $request->MERCHANT_TRANS_AMOUNT) {
+        if ($this->order->amount !== $request->MERCHANT_TRANS_AMOUNT) {
             return $this->sendResponse(
                 Error::INCORRECT_PARAMETER_AMOUNT
             );
@@ -121,7 +121,8 @@ class InfinityPay implements PaymentService
     private function getOrder(Request $request, string $key = 'MERCHANT_TRANS_ID'): void
     {
         $this->order = app(OrderModel::class)->find($request->$key);
-        $this->transaction = $this->order->transaction;
+
+        $this->transaction = $this->order?->transaction;
     }
 
     public function info(Request $request): JsonResponse
@@ -131,7 +132,7 @@ class InfinityPay implements PaymentService
 
         $checkOrder = $this->checkOrder();
 
-        if($checkOrder) return $checkOrder;
+        if ($checkOrder) return $checkOrder;
 
         return $this->sendResponse(extra: [
             'PARAMETERS' => []
@@ -140,7 +141,7 @@ class InfinityPay implements PaymentService
 
     public function checkAlreadyPayed(): ?JsonResponse
     {
-        if($this->order->is_payed) {
+        if ($this->order->is_payed) {
             return $this->sendResponse(
                 Error::ALREADY_PAID
             );
@@ -151,7 +152,7 @@ class InfinityPay implements PaymentService
 
     public function checkOrderCancelled(): ?JsonResponse
     {
-        if($this->transaction->status === TransactionStatus::CANCELLED) {
+        if ($this->transaction->status === TransactionStatus::CANCELLED) {
             return $this->sendResponse(
                 Error::TRANSACTION_CANCELLED
             );
@@ -162,7 +163,7 @@ class InfinityPay implements PaymentService
 
     public function checkVendor(Request $request): ?JsonResponse
     {
-        if($this->vendor_id !== (string) $request->VENDOR_ID) {
+        if ($this->vendor_id !== (string)$request->VENDOR_ID) {
             return $this->sendResponse(
                 Error::VENDOR_NOT_FOUND
             );
@@ -173,7 +174,7 @@ class InfinityPay implements PaymentService
 
     public function createTransaction($request): ?JsonResponse
     {
-        if($this->order->transaction) {
+        if ($this->order->transaction) {
             return $this->sendResponse(
                 Error::ALREADY_PAID
             );
@@ -196,16 +197,27 @@ class InfinityPay implements PaymentService
         info('PAY');
         $this->getOrder($request);
 
-        return $this->checkOrder() ??
+        $response = $this->checkOrder() ??
             $this->createTransaction($request) ??
             $this->checkAmount($request) ??
             $this->checkOrderCancelled() ??
             $this->checkAlreadyPayed() ??
             $this->checkUser() ??
-            $this->checkVendor($request) ??
-            $this->sendResponse(extra: [
-                'VENDOR_TRANS_ID' => $this->order->id,
+            $this->checkVendor($request);
+
+        if ($response === null) {
+            $this->order->update([
+                'is_payed' => true,
             ]);
+
+            $this->transaction->update([
+                'status' => TransactionStatus::ACTIVE,
+            ]);
+        } else return $response;
+
+        return $this->sendResponse(extra: [
+            'VENDOR_TRANS_ID' => $this->order->id,
+        ]);
     }
 
     public function notify(Request $request): JsonResponse
@@ -213,23 +225,27 @@ class InfinityPay implements PaymentService
         info('NOTIFY');
         $this->getOrder($request, 'VENDOR_TRANS_ID');
 
+        if (!$this->order) {
+            return $this->sendResponse(Error::TRANSACTION_DOES_NOT_EXIST);
+        }
+
         $checkOrder = $this->checkOrder();
 
-        if($checkOrder) return $checkOrder;
+        if ($checkOrder) return $checkOrder;
 
         $this->order->transaction->update([
             'extra->STATE' => $request->STATUS,
         ]);
 
-        switch($request->STATUS) {
+        switch ($request->STATUS) {
             case PaymentStatus::PAYED->value:
-                $this->order->update([
-                    'is_payed' => true,
-                ]);
-
-                $this->order->transaction->update([
-                    'status' => TransactionStatus::ACTIVE,
-                ]);
+//                $this->order->update([
+//                    'is_payed' => true,
+//                ]);
+//
+//                $this->order->transaction->update([
+//                    'status' => TransactionStatus::ACTIVE,
+//                ]);
 
                 break;
             case PaymentStatus::CANCELLED->value:
@@ -251,7 +267,7 @@ class InfinityPay implements PaymentService
         $checks = $this->checkOrder() ??
             $this->checkOrderCancelled();
 
-        if(!$checks) {
+        if (!$checks) {
             $this->order->transaction->update([
                 'extra->STATE' => self::TRANSACTION_STATE_CANCELLED,
             ]);
@@ -274,10 +290,19 @@ class InfinityPay implements PaymentService
     public function fiscalization(Request $request): JsonResponse
     {
         $this->getOrder($request, 'AGR_TRANS_ID');
+//        $column = 'AGR_TRANS_ID';
+//        $id = $request->$column;
+//        $this->order = app(OrderModel::class)->whereHas('transaction', function ($query) use($column, $id) {
+//            return $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(extra, '$.$column')) = $id");
+//        })->first();
+
+        if (!$this->order) {
+            return $this->sendResponse(Error::TRANSACTION_DOES_NOT_EXIST);
+        }
 
         $checkOrder = $this->checkOrder();
 
-        if($checkOrder) return $checkOrder;
+        if ($checkOrder) return $checkOrder;
 
         return $this->sendResponse(extra: [
             'PARAMETERS' => new InfinityPayFiscalizationResource($this->order)
