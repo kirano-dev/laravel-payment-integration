@@ -26,7 +26,7 @@ class Uzum implements PaymentService
     const ORDER_STATUS_COMPLETED = 'COMPLETED';
 
     const ROUTE_REGISTER_PAYMENT = 'payment/register';
-    const ROUTE_GET_ORDER_STATUS = 'getOrderStatus';
+    const ROUTE_GET_ORDER_STATUS = 'payment/getOrderStatus';
 
     public function __construct()
     {
