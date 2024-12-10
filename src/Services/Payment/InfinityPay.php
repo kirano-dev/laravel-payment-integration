@@ -127,7 +127,6 @@ class InfinityPay implements PaymentService
 
     public function info(Request $request): JsonResponse
     {
-        info('INFO');
         $this->getOrder($request);
 
         $checkOrder = $this->checkOrder();
@@ -194,7 +193,6 @@ class InfinityPay implements PaymentService
 
     public function pay(Request $request): JsonResponse
     {
-        info('PAY');
         $this->getOrder($request);
 
         $response = $this->checkOrder() ??
@@ -222,7 +220,6 @@ class InfinityPay implements PaymentService
 
     public function notify(Request $request): JsonResponse
     {
-        info('NOTIFY');
         $this->getOrder($request, 'VENDOR_TRANS_ID');
 
         if (!$this->order) {
@@ -261,7 +258,6 @@ class InfinityPay implements PaymentService
 
     public function cancel(Request $request): JsonResponse
     {
-        info('Cancel');
         $this->getOrder($request, 'VENDOR_TRANS_ID');
 
         $checks = $this->checkOrder() ??
@@ -289,12 +285,11 @@ class InfinityPay implements PaymentService
 
     public function fiscalization(Request $request): JsonResponse
     {
-        $this->getOrder($request, 'AGR_TRANS_ID');
-//        $column = 'AGR_TRANS_ID';
-//        $id = $request->$column;
-//        $this->order = app(OrderModel::class)->whereHas('transaction', function ($query) use($column, $id) {
-//            return $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(extra, '$.$column')) = $id");
-//        })->first();
+        $column = 'AGR_TRANS_ID';
+        $id = $request->$column;
+        $this->order = app(OrderModel::class)->whereHas('transaction', function ($query) use($column, $id) {
+            return $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(extra, '$.$column')) = $id");
+        })->first();
 
         if (!$this->order) {
             return $this->sendResponse(Error::TRANSACTION_DOES_NOT_EXIST);

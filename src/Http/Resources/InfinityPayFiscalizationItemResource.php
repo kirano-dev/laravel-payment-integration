@@ -17,7 +17,7 @@ class InfinityPayFiscalizationItemResource extends JsonResource
         return [
             'title' => $info['title'],
             'price' => $info['price'],
-            'count' => $this->quantity,
+            'count' => $this->pivot->quantity,
             'code' => $info['ikpu'],
             'package_code' => $info['package_code'],
             'vat_percent' => 12,

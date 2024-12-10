@@ -10,7 +10,6 @@ class ClickController
 {
     public function __invoke(CallbackRequest $request, Click $click): JsonResponse
     {
-        info(json_encode($request->all()));
         return $click->callback($request);
     }
 }

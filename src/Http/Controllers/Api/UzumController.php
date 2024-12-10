@@ -10,7 +10,6 @@ class UzumController
 {
     public function __invoke(CallbackRequest $request, Uzum $uzum): JsonResponse
     {
-        info(json_encode($request->all()));
         return $uzum->callback($request);
     }
 }
