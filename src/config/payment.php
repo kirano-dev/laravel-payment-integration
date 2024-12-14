@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'api_prefix' => 'api/v1',
+
     'click' => [
         'service_id' => '',
         'merchant_id' => '',

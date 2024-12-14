@@ -7,7 +7,7 @@ use KiranoDev\LaravelPayment\Http\Controllers\Api\PaymeController;
 use KiranoDev\LaravelPayment\Http\Controllers\Api\QuickPayController;
 use KiranoDev\LaravelPayment\Http\Controllers\Api\UzumController;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix(config('payment.api_prefix'))->group(function () {
     Route::prefix('payment')->as('payment.')
         ->group(function () {
             Route::post('click', ClickController::class)->name('click');
