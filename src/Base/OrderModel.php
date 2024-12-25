@@ -14,6 +14,7 @@ use KiranoDev\LaravelPayment\Models\Transaction;
 use KiranoDev\LaravelPayment\Services\Payment\Click;
 use KiranoDev\LaravelPayment\Services\Payment\InfinityPay;
 use KiranoDev\LaravelPayment\Services\Payment\Payme;
+use KiranoDev\LaravelPayment\Services\Payment\Paynet;
 use KiranoDev\LaravelPayment\Services\Payment\QuickPay;
 use KiranoDev\LaravelPayment\Services\Payment\Uzum;
 
@@ -32,6 +33,11 @@ abstract class OrderModel extends Model
         return config('app.url');
     }
 
+    public function getClientId()
+    {
+        return null;
+    }
+
     public function generateUrl(): string {
         return match($this->payment_method) {
             PaymentMethod::CASH => $this->getCashRoute(),
@@ -42,6 +48,7 @@ abstract class OrderModel extends Model
                 PaymentMethod::CLICK => Click::class,
                 PaymentMethod::QUICKPAY => QuickPay::class,
                 PaymentMethod::INFINITYPAY => InfinityPay::class,
+                PaymentMethod::PAYNET => Paynet::class,
             })->generateUrl($this)
         };
     }

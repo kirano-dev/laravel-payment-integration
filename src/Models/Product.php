@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Product extends Model
 {
+    protected $table = 'productables';
+    
     protected $fillable = [
         'productable_id',
         'productable_type',

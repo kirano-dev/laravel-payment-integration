@@ -10,6 +10,7 @@ class PaymeController
 {
     public function __invoke(CallbackRequest $request, Payme $payme): JsonResponse
     {
+        info('PAYME Callback: ' . json_encode($request->all()));
         return $payme->callback($request);
     }
 }

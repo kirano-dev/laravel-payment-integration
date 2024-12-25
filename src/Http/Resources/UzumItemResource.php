@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UzumItemResource extends JsonResource
 {
-    public function toArray(Request $request): array
+    public function toArray($request): array
     {
         $product = $this->productable;
         $info = $product->getFiscalizationInfo();

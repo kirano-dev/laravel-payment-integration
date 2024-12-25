@@ -11,5 +11,6 @@ enum PaymentMethod: string
     case UZUM = 'uzum';
     case QUICKPAY = 'quickpay';
     case INFINITYPAY = 'infinitypay';
+    case PAYNET = 'paynet';
     case CASH = 'cash';
 }

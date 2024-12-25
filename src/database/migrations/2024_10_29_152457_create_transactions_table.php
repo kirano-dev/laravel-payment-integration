@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', TransactionStatus::values())->default(TransactionStatus::INACTIVE);
+            $table->enum('status', TransactionStatus::values())->default(TransactionStatus::INACTIVE->value);
             $table->json('extra')->nullable();
             $table->foreignId('order_id');
             $table->timestamps();

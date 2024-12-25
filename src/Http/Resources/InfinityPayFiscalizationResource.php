@@ -9,7 +9,7 @@ use KiranoDev\LaravelPayment\Services\Payment\InfinityPay;
 
 class InfinityPayFiscalizationResource extends JsonResource
 {
-    public function toArray(Request $request): array
+    public function toArray($request): array
     {
         return [
             'type' => 0,

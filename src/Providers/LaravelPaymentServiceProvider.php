@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use KiranoDev\LaravelPayment\Services\Payment\Click;
 use KiranoDev\LaravelPayment\Services\Payment\Payme;
 use KiranoDev\LaravelPayment\Services\Payment\InfinityPay;
+use KiranoDev\LaravelPayment\Services\Payment\Paynet;
 use KiranoDev\LaravelPayment\Services\Payment\QuickPay;
 use KiranoDev\LaravelPayment\Services\Payment\Uzum;
 
@@ -18,6 +19,7 @@ class LaravelPaymentServiceProvider extends ServiceProvider
         $this->app->singleton(Uzum::class, fn () => new Uzum());
         $this->app->singleton(QuickPay::class, fn () => new QuickPay());
         $this->app->singleton(InfinityPay::class, fn () => new InfinityPay());
+        $this->app->singleton(Paynet::class, fn () => new Paynet());
     }
 
     public function boot(): void
