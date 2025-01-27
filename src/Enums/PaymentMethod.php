@@ -13,4 +13,7 @@ enum PaymentMethod: string
     case INFINITYPAY = 'infinitypay';
     case PAYNET = 'paynet';
     case CASH = 'cash';
+    case TRANSFER = 'transfer';
+    case UZUM_NASIYA = 'uzum_nasiya';
+    case ALIF_NASIYA = 'alif_nasiya';
 }

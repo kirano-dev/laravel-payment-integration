@@ -35,14 +35,14 @@ class Click implements PaymentService
         $this->complete_action = $this->with_split ? 2 : 1;
     }
 
-    public function generateUrl($order): string
+    public function generateUrl(OrderModel $order): string
     {
         $params = [
             'service_id' => $this->service_id,
             'merchant_id' => $this->merchant_id,
             'merchant_user_id' => $order->user_id,
             'amount' => $order->amount,
-            'transaction_param' => $order->id,
+            'transaction_param' => $order->getTransactionParam(),
         ];
 
         return self::HOST . '?' . http_build_query($params);

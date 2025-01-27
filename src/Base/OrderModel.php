@@ -33,14 +33,22 @@ abstract class OrderModel extends Model
         return config('app.url');
     }
 
-    public function getClientId()
+    public function getTransactionParam(): mixed
     {
-        return null;
+        return $this->id;
+    }
+
+    public function getParams(): array
+    {
+        return [];
     }
 
     public function generateUrl(): string {
         return match($this->payment_method) {
             PaymentMethod::CASH => $this->getCashRoute(),
+            PaymentMethod::TRANSFER => $this->getCashRoute(),
+            PaymentMethod::UZUM_NASIYA => $this->getCashRoute(),
+            PaymentMethod::ALIF_NASIYA => $this->getCashRoute(),
 
             default => app(match($this->payment_method) {
                 PaymentMethod::PAYME => Payme::class,

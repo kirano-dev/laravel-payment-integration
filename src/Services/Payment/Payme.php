@@ -49,6 +49,7 @@ class Payme implements PaymentService
             'ac.order_id' => $order->id,
             'a' => $order->amount * 100,
             'l' => $order->user->language ?? app()->getLocale(),
+            ...$order->getParams()
         ];
 
         return self::HOST . base64_encode(

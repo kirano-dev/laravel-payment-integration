@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
-use KiranoDev\LaravelPayment\Enums\PaymentMethod;
 use KiranoDev\LaravelPayment\Http\Resources\UzumItemResource;
 
 class Uzum implements PaymentService
@@ -45,7 +44,7 @@ class Uzum implements PaymentService
             'successUrl' => $order->getSuccessUrl(),
             'failureUrl' => $order->getFailureUrl(),
             'viewType' => 'REDIRECT',
-            'clientId' => (string) auth()->id(),
+            'clientId' => (string) $order->getTransactionParam(),
             'currency' => 860,
             'orderNumber' => (string) $order->id,
             'sessionTimeoutSecs' => 1800,
