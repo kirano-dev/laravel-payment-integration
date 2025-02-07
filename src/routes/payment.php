@@ -1,15 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\ClickController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\InfinityPayController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\PaymeController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\QuickPayController;
-use KiranoDev\LaravelPayment\Http\Controllers\Api\UzumController;
+use KiranoDev\LaravelPayment\Http\Controllers\Api\{
+    ClickController,
+    OctobankController,
+    InfinityPayController,
+    PaymeController,
+    QuickPayController,
+    UzumController,
+};
 
 Route::prefix(config('payment.api_prefix'))->group(function () {
     Route::prefix('payment')->as('payment.')
         ->group(function () {
+            Route::post('octobank', OctobankController::class)->name('octobank');
             Route::post('click', ClickController::class)->name('click');
             Route::post('payme', PaymeController::class)->name('payme');
             Route::post('uzum', UzumController::class)->name('uzum');
