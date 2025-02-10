@@ -3,19 +3,26 @@
 return [
     'api_prefix' => 'api/v1',
 
+    'vat_percent' => 12,
+    'inn' => '',
+
     'click' => [
         'service_id' => '',
         'merchant_id' => '',
         'merchant_user_id' => '',
         'secret_key' => '',
         'with_split' => false,
+
+        'enabled' => false,
     ],
 
     'payme' => [
         'merchant_id' => '',
         'key' => '',
         'test_key' => '',
+
         'is_test' => false,
+        'enabled' => false,
     ],
 
     'uzum' => [
@@ -23,23 +30,34 @@ return [
 
         'terminal_id' => '',
         'api_key' => '',
-        'inn' => '',
 
         'test' => [
             'terminal_id' => '',
             'api_key' => '',
-        ]
+        ],
+        'enabled' => false,
     ],
 
     'quickpay' => [
         'shop_id' => '',
         'secret_key' => '',
+
+        'enabled' => false,
     ],
 
     'infinitypay' => [
-        'is_test' => true,
-
         'vendor_id' => '',
         'secret_key' => '',
+
+        'is_test' => true,
+        'enabled' => false,
+    ],
+
+    'octobank' => [
+        'secret' => '',
+        'shop_id' => '',
+
+        'is_test' => true,
+        'enabled' => false,
     ],
 ];

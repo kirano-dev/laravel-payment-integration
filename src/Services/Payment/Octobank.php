@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use KiranoDev\LaravelPayment\Base\OrderModel;
 use KiranoDev\LaravelPayment\Contracts\PaymentService;
+use KiranoDev\LaravelPayment\Enums\TransactionStatus;
 use KiranoDev\LaravelPayment\Http\Resources\OctobankBasketResource;
+use KiranoDev\LaravelPayment\Models\Transaction;
 
 class Octobank implements PaymentService
 {
@@ -32,10 +34,12 @@ class Octobank implements PaymentService
 
     public function generateUrl(OrderModel $order): string
     {
+        $transaction = $order->transaction()->create();
+
         $response = $this->sendRequest(self::ROUTES['prepare_payment'], [
             'octo_shop_id' => $this->shop_id,
             'octo_secret' => $this->secret,
-            'shop_transaction_id' => $order->transaction->id,
+            'shop_transaction_id' => $transaction->id,
             'total_sum' => $order->amount,
             'currency' => 'UZS',
             'return_url' => $order->getSuccessUrl(),
@@ -66,15 +70,41 @@ class Octobank implements PaymentService
         return config('app.url');
     }
 
+    private function validateSignature(Request $request): bool
+    {
+        return sha1(sha1($this->secret . $request->hask_key) . $request->octo_payment_UUID . $request->status) === $request->signature;
+    }
+
+    private function sendResponse(string $message): JsonResponse
+    {
+        return response()->json('Invalid signature');
+    }
+
     public function callback(Request $request): JsonResponse
     {
-        // TODO: Implement callback() method.
+        if(!$this->validateSignature($request)) {
+            return $this->sendResponse('Invalid signature');
+        }
+
+        $transaction = Transaction::find($request->shop_transaction_id);
+
+        if(!$transaction) {
+            return $this->sendResponse('Invalid transaction');
+        }
+
+        $transaction->update([
+            'status' => TransactionStatus::ACTIVE,
+        ]);
+
+        $transaction->order->update([
+            'is_payed' => true
+        ]);
+
+        return $this->sendResponse('ok');
     }
 
     private function sendRequest(string $route, array $data): ?array
     {
-        return Http::withHeaders([
-            'Content-Language' => app()->getLocale() . '-' . strtoupper(app()->getLocale()),
-        ])->post($this->host . $route, $data)->json();
+        return Http::post($this->host . $route, $data)->json();
     }
 }

@@ -26,8 +26,8 @@ class UzumItemResource extends JsonResource
             'receiptParams' => [
                 'spic' => $info['ikpu'],
                 'packageCode' => $info['package_code'],
-                'vatPercent' => 12,
-                'TIN' => config('payment.uzum.inn'),
+                'vatPercent' => config('payment.vat_percent'),
+                'TIN' => config('payment.inn'),
             ]
         ];
     }

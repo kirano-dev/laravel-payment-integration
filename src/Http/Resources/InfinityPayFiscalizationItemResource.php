@@ -17,7 +17,7 @@ class InfinityPayFiscalizationItemResource extends JsonResource
             'count' => $this->pivot->quantity,
             'code' => $info['ikpu'],
             'package_code' => $info['package_code'],
-            'vat_percent' => 12,
+            'vat_percent' => config('payment.vat_percent'),
         ];
     }
 }

@@ -16,7 +16,7 @@ class PaymeFiscalisationResource extends JsonResource
             'price' => $info['price'] * 100,
             'count' => $this->pivot->quantity,
             'code' => $info['ikpu'],
-            'vat_percent' => 12,
+            'vat_percent' => config('payment.vat_percent'),
             'package_code' => $info['package_code'],
         ];
     }
