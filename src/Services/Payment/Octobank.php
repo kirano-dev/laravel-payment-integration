@@ -37,18 +37,19 @@ class Octobank implements PaymentService
         $transaction = $order->transaction()->create();
 
         $response = $this->sendRequest(self::ROUTES['prepare_payment'], [
-            'octo_shop_id' => $this->shop_id,
+            'octo_shop_id' => intval($this->shop_id),
             'octo_secret' => $this->secret,
-            'shop_transaction_id' => $transaction->id,
+            'shop_transaction_id' => "$transaction->id",
             'total_sum' => $order->amount,
             'currency' => 'UZS',
+            'description' => config('app.name', 'Payment'),
             'return_url' => $order->getSuccessUrl(),
 
-            'user_data' => [
-                'user_id' => $order->user->id,
-                'email' => $order->user->email,
-                'phone' => $order->user->phone,
-            ],
+//            'user_data' => [
+//                'user_id' => $order->user->id,
+//                'email' => $order->user->email,
+//                'phone' => $order->user->phone,
+//            ],
 
             'basket' => OctobankBasketResource::collection($order->products),
 

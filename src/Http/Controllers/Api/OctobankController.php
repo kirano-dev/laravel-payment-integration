@@ -10,6 +10,7 @@ class OctobankController
 {
     public function __invoke(CallbackRequest $request, Octobank $octobank): JsonResponse
     {
+        info(json_encode($request->all()));
         return $octobank->callback($request);
     }
 }
