@@ -6,6 +6,7 @@ enum PaymentMethod: string
 {
     use BaseEnum;
 
+    case COUPON = 'coupon';
     case CLICK = 'click';
     case PAYME = 'payme';
     case UZUM = 'uzum';
