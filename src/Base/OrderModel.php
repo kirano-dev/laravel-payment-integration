@@ -43,6 +43,11 @@ abstract class OrderModel extends Model
         return [];
     }
 
+    public function process(): void
+    {
+
+    }
+
     public function generateUrl(): string {
         return match($this->payment_method) {
             PaymentMethod::CASH => $this->getCashRoute(),

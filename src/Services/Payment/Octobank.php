@@ -114,6 +114,10 @@ class Octobank implements PaymentService
             'is_payed' => true
         ]);
 
+        try {
+            $transaction->order->process();
+        } catch (\Exception $exception) {}
+
         return $this->sendResponse('ok');
     }
 
