@@ -16,6 +16,7 @@ class Octobank implements PaymentService
     private string $host;
     private string $shop_id;
     private string $secret;
+    private string $hashSecret;
     private bool $is_test;
 
     const HOST = 'https://secure.octo.uz';
@@ -30,6 +31,7 @@ class Octobank implements PaymentService
         $this->is_test = config('payment.octobank.is_test');
         $this->shop_id = config('payment.octobank.shop_id');
         $this->secret = config('payment.octobank.secret');
+        $this->hashSecret = config('payment.octobank.hash_secret');
     }
 
     public function generateUrl(OrderModel $order): string
@@ -71,9 +73,20 @@ class Octobank implements PaymentService
         return config('app.url');
     }
 
+    private function generateSignature(Request $request): string
+    {
+        return strtoupper(
+            sha1(
+                $this->hashSecret .
+                $request->octo_payment_UUID .
+                $request->status
+            )
+        );
+    }
+
     private function validateSignature(Request $request): bool
     {
-        return sha1(sha1($this->secret . $request->hask_key) . $request->octo_payment_UUID . $request->status) === $request->signature;
+        return $this->generateSignature($request) === $request->signature;
     }
 
     private function sendResponse(string $message): JsonResponse

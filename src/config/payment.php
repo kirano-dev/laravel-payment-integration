@@ -55,6 +55,7 @@ return [
 
     'octobank' => [
         'secret' => '',
+        'hash_secret' => '',
         'shop_id' => '',
 
         'is_test' => true,
