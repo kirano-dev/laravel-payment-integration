@@ -96,27 +96,29 @@ class Octobank implements PaymentService
 
     public function callback(Request $request): JsonResponse
     {
-        if(!$this->validateSignature($request)) {
-            return $this->sendResponse('Invalid signature');
+        if($request->status === 'succeeded') {
+            if(!$this->validateSignature($request)) {
+                return $this->sendResponse('Invalid signature');
+            }
+
+            $transaction = Transaction::find($request->shop_transaction_id);
+
+            if(!$transaction) {
+                return $this->sendResponse('Invalid transaction');
+            }
+
+            $transaction->update([
+                'status' => TransactionStatus::ACTIVE,
+            ]);
+
+            $transaction->order->update([
+                'is_payed' => true
+            ]);
+
+            try {
+                $transaction->order->process();
+            } catch (\Exception $exception) {}
         }
-
-        $transaction = Transaction::find($request->shop_transaction_id);
-
-        if(!$transaction) {
-            return $this->sendResponse('Invalid transaction');
-        }
-
-        $transaction->update([
-            'status' => TransactionStatus::ACTIVE,
-        ]);
-
-        $transaction->order->update([
-            'is_payed' => true
-        ]);
-
-        try {
-            $transaction->order->process();
-        } catch (\Exception $exception) {}
 
         return $this->sendResponse('ok');
     }
