@@ -197,6 +197,12 @@ class Click implements PaymentService
 
         $response["merchant_{$type}_id"] = $transaction->id;
 
+        try {
+            $transaction->order->onSuccessfulPay();
+        } catch (\Exception $exception) {
+            info("Failed onSuccessfulPay hook (Click, Order ID: $transaction->order_id): $exception");
+        }
+
         return response()->json($response + $this->makeError(Error::SUCCESS));
     }
 

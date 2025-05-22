@@ -20,11 +20,15 @@ use KiranoDev\LaravelPayment\Services\Payment\Uzum;
 
 abstract class OrderModel extends Model
 {
+    abstract public function onSuccessfulPay(): void;
+
     public function transaction(): HasOne {
         return $this->hasOne(Transaction::class);
     }
 
-    abstract public function getCashRoute(): string;
+    public function getCashRoute(): string {
+        return '';
+    }
 
     public function getSuccessUrl(): string {
         return config('app.url');
@@ -41,11 +45,6 @@ abstract class OrderModel extends Model
     public function getParams(): array
     {
         return [];
-    }
-
-    public function process(): void
-    {
-
     }
 
     public function generateUrl(): string {

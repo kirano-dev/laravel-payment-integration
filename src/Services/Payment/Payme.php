@@ -144,6 +144,12 @@ class Payme implements PaymentService
             $this->transaction->order->update([
                 'is_payed' => true
             ]);
+
+            try {
+                $this->transaction->order->onSuccessfulPay();
+            } catch (\Exception $exception) {
+                info("Failed onSuccessfulPay hook (Payme, Order ID: {$this->transaction->order_id}): $exception");
+            }
         }
 
         return $this->sendResponse([

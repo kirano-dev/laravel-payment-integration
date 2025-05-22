@@ -116,8 +116,10 @@ class Octobank implements PaymentService
             ]);
 
             try {
-                $transaction->order->process();
-            } catch (\Exception $exception) {}
+                $transaction->order->onSuccessfulPay();
+            } catch (\Exception $exception) {
+                info("Failed onSuccessfulPay hook (Octobank, Order ID: $transaction->order_id): $exception");
+            }
         }
 
         return $this->sendResponse('ok');

@@ -113,6 +113,12 @@ class Uzum implements PaymentService
                         $order->update([
                             'is_payed' => true
                         ]);
+
+                        try {
+                            $order->onSuccessfulPay();
+                        } catch (\Exception $exception) {
+                            info("Failed onSuccessfulPay hook (Uzum, Order ID: $order->id): $exception");
+                        }
                     }
                 }
             }
