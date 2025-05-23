@@ -19,6 +19,7 @@ class Click implements PaymentService
     private string $merchant_id;
     private int $prepare_action;
     private int $complete_action;
+    private OrderModel $order;
 
     const MIN_AMOUNT = 100;
     const MAX_AMOUNT = 100000000;
@@ -35,8 +36,21 @@ class Click implements PaymentService
         $this->complete_action = $this->with_split ? 2 : 1;
     }
 
+    private function setConfig(): void
+    {
+        $config = $this->order?->getPaymentConfig() ?? config('payment.click');
+        
+        $this->with_split = $config['with_split'] ?? false;
+        $this->secret_key = $config['secret_key'];
+        $this->service_id = $config['service_id'];
+        $this->merchant_id = $config['merchant_id'];
+    }
+
     public function generateUrl(OrderModel $order): string
     {
+        $this->order = $order;
+        $this->setConfig();
+
         $params = [
             'service_id' => $this->service_id,
             'merchant_id' => $this->merchant_id,
@@ -234,6 +248,12 @@ class Click implements PaymentService
 
     public function callback(Request $request): JsonResponse
     {
+        $transactionId = data_get($request->all(), 'params.transaction_param');
+
+        if ($transactionId) {
+            $this->order = app(OrderModel::class)::find($transactionId);
+        }
+
         $this->request = $request;
 
         $action = $this->getAction($request->action);
