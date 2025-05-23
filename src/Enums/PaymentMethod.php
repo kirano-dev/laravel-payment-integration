@@ -17,4 +17,5 @@ enum PaymentMethod: string
     case TRANSFER = 'transfer';
     case UZUM_NASIYA = 'uzum_nasiya';
     case ALIF_NASIYA = 'alif_nasiya';
+    case OCTOBANK = 'octobank';
 }

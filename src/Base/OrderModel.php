@@ -13,6 +13,7 @@ use KiranoDev\LaravelPayment\Models\Product;
 use KiranoDev\LaravelPayment\Models\Transaction;
 use KiranoDev\LaravelPayment\Services\Payment\Click;
 use KiranoDev\LaravelPayment\Services\Payment\InfinityPay;
+use KiranoDev\LaravelPayment\Services\Payment\Octobank;
 use KiranoDev\LaravelPayment\Services\Payment\Payme;
 use KiranoDev\LaravelPayment\Services\Payment\Paynet;
 use KiranoDev\LaravelPayment\Services\Payment\QuickPay;
@@ -49,9 +50,9 @@ abstract class OrderModel extends Model
 
     public function generateUrl(): string {
         return match($this->payment_method) {
-            PaymentMethod::CASH => $this->getCashRoute(),
-            PaymentMethod::TRANSFER => $this->getCashRoute(),
-            PaymentMethod::UZUM_NASIYA => $this->getCashRoute(),
+            PaymentMethod::CASH,
+            PaymentMethod::TRANSFER,
+            PaymentMethod::UZUM_NASIYA,
             PaymentMethod::ALIF_NASIYA => $this->getCashRoute(),
 
             default => app(match($this->payment_method) {
@@ -61,6 +62,7 @@ abstract class OrderModel extends Model
                 PaymentMethod::QUICKPAY => QuickPay::class,
                 PaymentMethod::INFINITYPAY => InfinityPay::class,
                 PaymentMethod::PAYNET => Paynet::class,
+                PaymentMethod::OCTOBANK => Octobank::class,
             })->generateUrl($this)
         };
     }
